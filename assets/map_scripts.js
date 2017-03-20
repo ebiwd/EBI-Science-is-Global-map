@@ -95,18 +95,19 @@ function addNodes(targetClusterGroup,queueToAdd) {
 
 // setup colours and markercluster objects
 var counter = 0;
-var markerClustersEBIColor = 'rgba(168,200,19,.8)',
-    markerClustersPortalsColor = 'rgba(235,98,9,.8)',
-    markerClustersUniprotColor = 'rgba(29,92,116,.8)';
-// var markerClustersTemporary = newMarkerClusterGroup(markerClustersEBIColor); // we use for data processing only
-var markerClustersEBI = newMarkerClusterGroup(markerClustersEBIColor,'markerClustersEBI','<span style="color:' + markerClustersEBIColor + '">EMBL-EBI request</span>'),
-    markerClustersPortals = newMarkerClusterGroup(markerClustersPortalsColor,'markerClustersPortals','<span style="color:' + markerClustersPortalsColor + '">Portal request</span>'),
-    markerClustersUniprot = newMarkerClusterGroup(markerClustersUniprotColor,'markerClustersUniprot','<span style="color:' + markerClustersUniprotColor + '">UniProt request</span>');
+var markerClustersCurrentColor = 'rgba(168,200,19,.8)',
+    markerClustersPreviousColor = 'rgba(235,98,9,.8)',
+    markerClustersAlumniColor = 'rgba(29,92,116,.8)';
+// var markerClustersTemporary = newMarkerClusterGroup(markerClustersCurrentColor); // we use for data processing only
+var markerClustersCurrent = newMarkerClusterGroup(markerClustersCurrentColor,'markerClustersCurrent','<span style="color:' + markerClustersCurrentColor + '">EMBL-EBI request</span>'),
+    markerClustersPrevious = newMarkerClusterGroup(markerClustersPreviousColor,'markerClustersPrevious','<span style="color:' + markerClustersPreviousColor + '">Portal request</span>'),
+    markerClustersAlumni = newMarkerClusterGroup(markerClustersAlumniColor,'markerClustersAlumni','<span style="color:' + markerClustersAlumniColor + '">UniProt request</span>');
 
-map.addLayer(markerClustersEBI);
-map.addLayer(markerClustersPortals);
-map.addLayer(markerClustersUniprot);
+map.addLayer(markerClustersCurrent);
+map.addLayer(markerClustersPrevious);
+map.addLayer(markerClustersAlumni);
 
+// http://leafletjs.com/reference.html#path-options
 function markerOptions(layer) {
   return {opacity: 0, fillOpacity: 1, radius: 3, color: '#000'};
 }
@@ -134,10 +135,10 @@ $.ajax({
     var parsedData = ['born','unniversity','first_job','work_previous','work_now','work_future'];
 
     $.each(data, function(index, value) {
-      console.log(index,dataRow);
+      // console.log(index,dataRow);
       var dataRow = value.split(';');
       for (var i = 0; i < dataRow.length; i++) {
-        console.log(dataRow[i]);
+        // console.log(dataRow[i]);
         geocoder.query(dataRow[i], addPoint);
       }
     });
@@ -148,9 +149,11 @@ $.ajax({
       // The geocoder can return an area, like a city, or a
       // point, like an address. Here we handle both cases,
       // by fitting the map bounds to an area or zooming to a point.
-      console.log(geoResponse);
-      // http://leafletjs.com/reference.html#path-options
-      L.circleMarker([geoResponse.latlng[0], geoResponse.latlng[1]],markerOptions('tocome')).addTo(map);
+      // console.log(err,geoResponse);
+
+      if (geoResponse.latlng) {
+        L.circleMarker([geoResponse.latlng[0], geoResponse.latlng[1]],markerOptions('tocome')).addTo(map);
+      }
       if (geoResponse.lbounds) {
         // L.marker([-45, -45]).addTo(map);
         // map.fitBounds(geoResponse.lbounds);
