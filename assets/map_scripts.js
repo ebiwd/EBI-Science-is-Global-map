@@ -112,30 +112,59 @@ function markerOptions(layer) {
   return {opacity: 0, fillOpacity: 1, radius: 3, color: '#000'};
 }
 
+window.googleDocCallback = function () {console.log('test'); return true; };
+
+// var xhr = new XMLHttpRequest();
+// xhr.open('GET', 'https://docs.google.com/spreadsheets/d/1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk/pub?gid=651837424&single=true&output=csv&callback=googleDocCallback', true);
+// xhr.onload = function (e) {
+//   if (xhr.readyState === 4) {
+//     if (xhr.status === 200) {
+//       console.log(xhr.responseText);
+//     } else {
+//       console.error(xhr.statusText);
+//     }
+//   }
+// };
+// xhr.onerror = function (e) {
+//   console.error(xhr.statusText);
+// };
+// xhr.send(null);
+//
+// console.log(xhr);
+
 // pull the data
 $.ajax({
   type: "GET",
-  url: 'assets/data.csv',
-  dataType: "text",
+  // url: 'assets/data.csv',
+  // use YQL as a proxy to avoid CORS issues
+  // and we convert CSV to JSON!
+  url: 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D%27https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk%2Fpub%3Fgid%3D651837424%26output%3Dcsv%27&format=json',
+  // url: 'https://docs.google.com/spreadsheets/d/1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk/pub?gid=651837424&output=txt',
+  // url: 'https://docs.google.com/spreadsheets/d/1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk/pub?gid=651837424&single=true&output=csv',
+  // dataType: "text",
   success: function(data, textStatus, request) {
     // data = data.replace(/(?:\r\n|\r|\n)/g, '; ');
     // console.log(data);
-    data = csvJSON(data);
+    // data = csvJSON(data);
 
-    // cleanup
-    data = data.replace(/"\\"/g, '"'); // double quote at start
-    data = data.replace(/\\""/g, '"'); // double quote at end
-    data = data.replace(/nope;/g, '');
-    data = data.replace(/No idea;/g, '');
+    data = data['query']['results']['row'][1];
 
     // console.log(data);
-    data = JSON.parse(data)[0];
+
+    // cleanup
+    // data = data.replace(/"\\"/g, '"'); // double quote at start
+    // data = data.replace(/\\""/g, '"'); // double quote at end
+    // data = data.replace(/nope;/g, '');
+    // data = data.replace(/No idea;/g, '');
+
+    // console.log(data);
+    // data = JSON.parse(data)[0];
     // console.log(data);
 
     var parsedData = ['born','unniversity','first_job','work_previous','work_now','work_future'];
 
     $.each(data, function(index, value) {
-      // console.log(index,dataRow);
+      // console.log(index,value);
       var dataRow = value.split(';');
       for (var i = 0; i < dataRow.length; i++) {
         // console.log(dataRow[i]);
