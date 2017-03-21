@@ -1,6 +1,14 @@
 body { margin:0; padding:0; }
 #map { position:absolute; top:0; bottom:0; width:100%; }
-.daynightoverlay { opacity: .1 }
+
+path.work_now { fill: rgba(168,200,19,.4); }
+path.work_previous,
+path.first_job,
+path.born,
+path.university { fill: rgba(235,98,9,.4); }
+path.work_future { fill: rgba(29,92,116,.4); }
+
+
 .leaflet-div-icon { background: none; border: none; }
 .leaflet-marker-icon  { text-align: center; }
 

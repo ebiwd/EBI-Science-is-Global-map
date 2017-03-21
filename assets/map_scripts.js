@@ -2,18 +2,18 @@
 // https://www.mapbox.com/mapbox.js/example/v1.0.0/markercluster-multiple-groups/
 // https://github.com/Leaflet/Leaflet.markercluster#usage
 
+// To do
+// - Add a csv or json of "known" locations so we don't have to always hit the API for all cities
+// - introduce dot jitter so that dots for the same locations don't 100% overlap
+// - query the content db to see which users are alumnus
+// - avoid using clustering ... but we'll leave it in for now..
+
 L.mapbox.accessToken = 'pk.eyJ1Ijoia2hhd2tpbnNlYmkiLCJhIjoiY2ludTZ2M3ltMDBtNXczbTJueW85ZmJjNyJ9.u6SIfnrYvGe6WFP3fOtaVQ';
 
 var geocoder = L.mapbox.geocoder('mapbox.places'),
     map = L.mapbox.map('map');
 
-// show sunrise and sunset
-// http://joergdietrich.github.io/Leaflet.Terminator/
-// map.setView([30, daynightoverlay.getLatLngs()[0][700]['lng']], 2);
 map.setView([30, 10], 3);
-// daynightoverlay.addTo(map);
-
-// setInterval(function(){updateTerminator(daynightoverlay)}, 2000);
 
 L.tileLayer(
   'https://api.mapbox.com/styles/v1/khawkinsebi/cio2mav7q0018c2nk2vvg8xgt/tiles/{z}/{x}/{y}?access_token=' + L.mapbox.accessToken, {
@@ -109,28 +109,8 @@ map.addLayer(markerClustersAlumni);
 
 // http://leafletjs.com/reference.html#path-options
 function markerOptions(layer) {
-  return {opacity: 0, fillOpacity: 1, radius: 3, color: '#000'};
+  return {opacity: 0, fillOpacity: 1, radius: 3, color: '#000', className: layer};
 }
-
-window.googleDocCallback = function () {console.log('test'); return true; };
-
-// var xhr = new XMLHttpRequest();
-// xhr.open('GET', 'https://docs.google.com/spreadsheets/d/1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk/pub?gid=651837424&single=true&output=csv&callback=googleDocCallback', true);
-// xhr.onload = function (e) {
-//   if (xhr.readyState === 4) {
-//     if (xhr.status === 200) {
-//       console.log(xhr.responseText);
-//     } else {
-//       console.error(xhr.statusText);
-//     }
-//   }
-// };
-// xhr.onerror = function (e) {
-//   console.error(xhr.statusText);
-// };
-// xhr.send(null);
-//
-// console.log(xhr);
 
 // pull the data
 $.ajax({
@@ -139,8 +119,7 @@ $.ajax({
   // use YQL as a proxy to avoid CORS issues
   // and we convert CSV to JSON!
   url: 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D%27https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk%2Fpub%3Fgid%3D651837424%26output%3Dcsv%27&format=json',
-  // url: 'https://docs.google.com/spreadsheets/d/1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk/pub?gid=651837424&output=txt',
-  // url: 'https://docs.google.com/spreadsheets/d/1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk/pub?gid=651837424&single=true&output=csv',
+  // url: 'https://docs.google.com/spreadsheets/d/1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk/pub?gid=651837424&output=csv',
   // dataType: "text",
   success: function(data, textStatus, request) {
     // data = data.replace(/(?:\r\n|\r|\n)/g, '; ');
@@ -161,35 +140,51 @@ $.ajax({
     // data = JSON.parse(data)[0];
     // console.log(data);
 
-    var parsedData = ['born','unniversity','first_job','work_previous','work_now','work_future'];
-
     $.each(data, function(index, value) {
       // console.log(index,value);
       var dataRow = value.split(';');
       for (var i = 0; i < dataRow.length; i++) {
         // console.log(dataRow[i]);
-        geocoder.query(dataRow[i], addPoint);
+
+        var legend = {'col0': 'status',
+                      'col1': 'born',
+                      'col2': 'university',
+                      'col3': 'work_now',
+                      'col4': 'first_job',
+                      'col5': 'work_previous',
+                      'col6': 'work_future'};
+
+        // skip certain columns
+        if ((index != 'col0') && (index != 'col6')) {
+          geocoder.query({ query: dataRow[i], layer: "test" }, function(err, geoResponse){
+            if (geoResponse.latlng) {
+              L.circleMarker([geoResponse.latlng[0], geoResponse.latlng[1]],markerOptions(legend[index])).addTo(map);
+            }
+
+          });
+        } // END if columns
       }
     });
 
     // geocoder.query('Chester, NJ', addPoint);
 
-    function addPoint(err, geoResponse) {
-      // The geocoder can return an area, like a city, or a
-      // point, like an address. Here we handle both cases,
-      // by fitting the map bounds to an area or zooming to a point.
-      // console.log(err,geoResponse);
-
-      if (geoResponse.latlng) {
-        L.circleMarker([geoResponse.latlng[0], geoResponse.latlng[1]],markerOptions('tocome')).addTo(map);
-      }
-      if (geoResponse.lbounds) {
-        // L.marker([-45, -45]).addTo(map);
-        // map.fitBounds(geoResponse.lbounds);
-      } else if (geoResponse.latlng) {
-        // map.setView([geoResponse.latlng[0], geoResponse.latlng[1]], 13);
-      }
-    }
+    // function addPoint(err, geoResponse) {
+    //   console.log(geoResponse);
+    //   // The geocoder can return an area, like a city, or a
+    //   // point, like an address. Here we handle both cases,
+    //   // by fitting the map bounds to an area or zooming to a point.
+    //   // console.log(err,geoResponse);
+    //
+    //   if (geoResponse.latlng) {
+    //     L.circleMarker([geoResponse.latlng[0], geoResponse.latlng[1]],markerOptions('tocome')).addTo(map);
+    //   }
+    //   if (geoResponse.lbounds) {
+    //     // L.marker([-45, -45]).addTo(map);
+    //     // map.fitBounds(geoResponse.lbounds);
+    //   } else if (geoResponse.latlng) {
+    //     // map.setView([geoResponse.latlng[0], geoResponse.latlng[1]], 13);
+    //   }
+    // }
 
     // var markerClustersTemporary = [];
     //
