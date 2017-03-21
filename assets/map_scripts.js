@@ -118,7 +118,7 @@ $.ajax({
   // url: 'assets/data.csv',
   // use YQL as a proxy to avoid CORS issues
   // and we convert CSV to JSON!
-  url: 'http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D%27https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk%2Fpub%3Fgid%3D651837424%26output%3Dcsv%27&format=json',
+  url: 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D%27https%3A%2F%2Fdocs.google.com%2Fspreadsheets%2Fd%2F1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk%2Fpub%3Fgid%3D651837424%26output%3Dcsv%27&format=json',
   // url: 'https://docs.google.com/spreadsheets/d/1AZ1X5ymkZOYfSY_l7litP5vt1aKDgKBat5neUufq9Rk/pub?gid=651837424&output=csv',
   // dataType: "text",
   success: function(data, textStatus, request) {
